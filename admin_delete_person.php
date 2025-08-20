@@ -7,22 +7,25 @@ if ($mysqli->connect_error) {
 }
 
 if (isset($_GET['id'])) {
-    $id = $_GET['id'];
+    $id = intval($_GET['id']);
 
+    // ลบจาก playlist_items ก่อน
+    $stmt = $mysqli->prepare("DELETE FROM playlist_items WHERE person_id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->close();
+
+    // แล้วค่อยลบจาก persons
     $stmt = $mysqli->prepare("DELETE FROM persons WHERE id = ?");
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
-        // ลบสำเร็จ ส่งกลับหน้าเดิม
-        header("Location: " . $_SERVER['HTTP_REFERER'] . "?msg=deleted");
+        header("Location: admin_persons.php?msg=deleted");
         exit;
     } else {
         echo "เกิดข้อผิดพลาด: " . $stmt->error;
     }
 
-    $stmt->close();
-} else {
-    echo "ไม่มี id ที่ส่งมา";
 }
 
 $mysqli->close();

@@ -173,15 +173,21 @@ $count = $result->num_rows;
     
     <div class="container-fluid">
         <!-- Header ผลการค้นหา -->
-        <div class="search-header">
-            <h1 class="search-title">
-                <i class="fas fa-search me-2"></i>
-                ผลการค้นหา: "<?= htmlspecialchars($q) ?>"
-            </h1>
-            <p class="search-count">
-                พบ <?= $count ?> รายการ
-            </p>
-        </div>
+    <div class="search-header text-center">
+        <h1 class="search-title">
+            <i class="fas fa-search me-2"></i>
+            ผลการค้นหา: "<?= htmlspecialchars($q) ?>"
+        </h1>
+        <p class="search-count">
+            พบ <?= $count ?> รายการ
+        </p>
+
+    <!-- ฟอร์มค้นหาใหม่ -->
+        <form method="get" class="d-flex justify-content-center mt-3">
+            <input type="text" name="q" class="form-control me-2" style="max-width:400px;" placeholder="ค้นหา..." required>
+            <button type="submit" class="btn btn-warning"><i class="fas fa-search"></i> ค้นหาใหม่</button>
+        </form>
+    </div>
 
         <div class="results-container">
             <?php if ($count > 0): ?>

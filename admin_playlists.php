@@ -2,7 +2,20 @@
 include './includes/db.php';
 $currentPage = 'playlists';
 
-// ดึง Playlist ทั้งหมด
+// ✅ ลบ Playlist
+if (isset($_GET['delete'])) {
+    $id = intval($_GET['delete']);
+    $stmt = $conn->prepare("DELETE FROM playlists WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $stmt->close();
+
+    // กลับมาหน้าเดิมหลังลบ
+    header("Location: admin_playlists.php?msg=deleted");
+    exit;
+}
+
+// ✅ ดึง Playlist ทั้งหมด
 $result = $conn->query("SELECT * FROM playlists ORDER BY id DESC");
 $playlists = $result->fetch_all(MYSQLI_ASSOC);
 ?>
@@ -23,7 +36,6 @@ $playlists = $result->fetch_all(MYSQLI_ASSOC);
     border-radius: 20px;
     padding: 20px;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
     height: 100%;
     display: flex;
@@ -31,7 +43,6 @@ $playlists = $result->fetch_all(MYSQLI_ASSOC);
 }
 .person-card:hover {
     transform: translateY(-10px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
 }
 .person-image {
     width: 100%;
@@ -71,7 +82,25 @@ $playlists = $result->fetch_all(MYSQLI_ASSOC);
     background: linear-gradient(135deg, #ff7b00, #ff5500);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(255, 149, 0, 0.3);
+}
+.delete-btn {
+    background: linear-gradient(135deg, #dc3545, #b02a37);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-weight: 500;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+.delete-btn:hover {
+    background: linear-gradient(135deg, #b02a37, #801f28);
+    transform: translateY(-2px);
 }
 .no-results {
     text-align: center;
@@ -81,7 +110,6 @@ $playlists = $result->fetch_all(MYSQLI_ASSOC);
     border-radius: 20px;
     margin: 30px auto;
     max-width: 600px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }
 .no-results-icon {
     font-size: 4rem;
@@ -96,40 +124,41 @@ $playlists = $result->fetch_all(MYSQLI_ASSOC);
 </style>
 </head>
 <body>
-<?php $currentPage = 'playlists'; include './includes/admin_navbar.php'; ?>
+<?php include './includes/admin_navbar.php'; ?>
 <div class="container my-5">
     <h1 class="mb-4">🎵 Playlists</h1>
     <a href="admin_add_playlist.php" class="btn btn-success mb-4"><i class="fas fa-plus"></i> เพิ่ม Playlist</a>
 
     <div class="row g-4">
-        <?php
-        $result = $conn->query("SELECT * FROM playlists ORDER BY id DESC");
-        if($result->num_rows > 0):
-            while($row = $result->fetch_assoc()):
-        ?>
-        <div class="col-lg-3 col-md-4 col-sm-6">
-            <div class="person-card">
-                <?php if(!empty($row['image'])): ?>
-                    <img src="<?= htmlspecialchars($row['image']) ?>" alt="<?= htmlspecialchars($row['title']) ?>" class="person-image">
-                <?php else: ?>
-                    <div class="person-image d-flex align-items-center justify-content-center" 
-                         style="background: linear-gradient(135deg, #f0f0f0, #e0e0e0);">
-                        <i class="fas fa-music" style="font-size: 3rem; color: #ccc;"></i>
-                    </div>
-                <?php endif; ?>
+        <?php if(count($playlists) > 0): ?>
+            <?php foreach($playlists as $row): ?>
+                <div class="col-lg-3 col-md-4 col-sm-6">
+                    <div class="person-card">
+                        <?php if(!empty($row['image'])): ?>
+                            <img src="<?= htmlspecialchars($row['image']) ?>" alt="<?= htmlspecialchars($row['title']) ?>" class="person-image">
+                        <?php else: ?>
+                            <div class="person-image d-flex align-items-center justify-content-center" 
+                                style="background: linear-gradient(135deg, #f0f0f0, #e0e0e0);">
+                                <i class="fas fa-music" style="font-size: 3rem; color: #ccc;"></i>
+                            </div>
+                        <?php endif; ?>
 
-                <h3 class="person-name"><?= htmlspecialchars($row['title']) ?></h3>
-                <p class="person-description">
-                    <?= htmlspecialchars(mb_substr($row['description'],0,80)) ?>
-                    <?php if(mb_strlen($row['description'])>80) echo '...'; ?>
-                </p>
-                
-                <a href="admin_edit_playlist.php?id=<?= $row['id'] ?>" class="detail-btn">
-                    <i class="fas fa-edit"></i> แก้ไข
-                </a>
-            </div>
-        </div>
-        <?php endwhile; else: ?>
+                        <h3 class="person-name"><?= htmlspecialchars($row['title']) ?></h3>
+                        <p class="person-description">
+                            <?= htmlspecialchars(mb_substr($row['description'],0,80)) ?>
+                            <?php if(mb_strlen($row['description'])>80) echo '...'; ?>
+                        </p>
+                        
+                        <a href="admin_edit_playlist.php?id=<?= $row['id'] ?>" class="detail-btn">
+                            <i class="fas fa-edit"></i> แก้ไข
+                        </a>
+                        <a href="?delete=<?= $row['id'] ?>" class="delete-btn" onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบ Playlist นี้?');">
+                            <i class="fas fa-trash-alt"></i> ลบ
+                        </a>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php else: ?>
             <div class="no-results">
                 <div class="no-results-icon"><i class="fas fa-folder-open"></i></div>
                 <div class="no-results-text">ยังไม่มี Playlist</div>
